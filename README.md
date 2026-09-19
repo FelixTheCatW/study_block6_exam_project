@@ -37,6 +37,10 @@ https://www.kaggle.com/datasets/evan65549/health-and-fitness-dataset
 9. Нормирует числовые признаки.
 10. Делит данные на train/test.
 11. Сохраняет подготовленные файлы для будущего машинного обучения.
+12. Связывает слои дипломного проекта: блюда MFP (6,5 млн приёмов пищи)
+    сопоставляются со справочником Open Food Facts (73,9% совпадений),
+    а дневные слои MFP + Health + DietDiary объединяются
+    в единую ежедневную таблицу `combined_daily.csv`.
 
 ## Архитектура
 
@@ -48,6 +52,7 @@ https://www.kaggle.com/datasets/evan65549/health-and-fitness-dataset
 | `src/data_loader.py` | загрузка и сохранение CSV |
 | `src/data_cleaner.py` | очистка пропусков и дубликатов |
 | `src/data_analyzer.py` | NumPy/Pandas-статистика, группировки, корреляции |
+| `src/data_linker.py` | связка MFP + Open Food Facts + Health + DietDiary |
 | `src/visualizer.py` | сохранение графиков |
 | `src/ml_preparer.py` | признаки, кодирование, нормирование, train/test split |
 | `src/report_builder.py` | формирование итогового markdown-отчёта |
@@ -66,17 +71,38 @@ python -m pytest -q
 После запуска появляются:
 
 - `data/processed/health_clean.csv`
+- `data/processed/mfp_day_intake.csv` (дневной intake MFP, обогащённый OFF)
+- `data/processed/dietdiary_day.csv` (вес и фото по дням)
+- `data/processed/combined_daily.csv` (единая ежедневная таблица 4 слоёв)
 - `data/ml/X_train.csv`, `X_test.csv`, `y_train.csv`, `y_test.csv`
 - `reports/final_report.md`
+- `reports/datasets_link_report.md`
 - `reports/group_report_activity_type.csv`
 - `reports/correlation_with_weight.csv`
-- `reports/charts/*.png` (3 графика)
+- `reports/charts/*.png` (4 графика)
+
+## Связка датасетов
+
+Перечень слоёв дипломного проекта и их роль:
+
+| Слой | Источник | Роль |
+|---|---|---|
+| Питание | MFP Diaries (`mfp-diaries.parquet`) | дневной intake: калории, БЖУ |
+| Справочник | Open Food Facts (`food_data.csv`) | категории и состав на 100 г |
+| Здоровье | Health and fitness | расход энергии, активность, вес |
+| Дневник с фото | DietDiary (`diet_diary.csv`) | вес по дням, фото приёмов пищи |
+
+Между слоями нет общих ключей (разные пользователи и годы), поэтому объединение
+построено как гармонизированная дневная схема с колонкой `source`.
+Блюда MFP сопоставляются со справочником OFF по токенам названий
+(`containment >= 0.50`): совпадение для 73,9% приёмов пищи (4,8 млн из 6,5 млн).
 
 ## Связь с ИИ
 
 Подготовленная матрица X и целевая переменная `weight_kg` — основа задачи
-регрессии на защите диплома. Матрица X без y пригодна для кластеризации
-пользователей по профилю активности и образа жизни.
+регрессии на защите диплома. Матрица X без y пригодна для кластеризации.
+Единая ежедневная таблица `combined_daily.csv` — вход для объединённого
+ML-пайплайна диплома (intake + активность + вес + категории OFF).
 
 ## Автор
 

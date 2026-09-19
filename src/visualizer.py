@@ -91,3 +91,27 @@ class Visualizer:
         plt.close()
 
         return output_path
+
+    def save_category_bar(
+        self,
+        categories: pd.Series,
+        filename: str,
+        title: str,
+    ) -> Path:
+        """Сохранить столбчатую диаграмму частот категорий."""
+        output_path = self.charts_dir / filename
+
+        top_categories = categories.head(10)
+
+        plt.figure(figsize=(10, 5))
+        top_categories.plot(kind="bar", color="#4C72B0")
+        plt.title(title)
+        plt.xlabel("Категория Open Food Facts")
+        plt.ylabel("Приёмов пищи")
+        plt.xticks(rotation=45, ha="right")
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+        plt.savefig(output_path, dpi=120)
+        plt.close()
+
+        return output_path

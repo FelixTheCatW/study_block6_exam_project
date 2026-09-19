@@ -21,11 +21,25 @@ CHARTS_DIR = REPORTS_DIR / "charts"
 # Локальный путь к исходному датасету.
 RAW_DATA_PATH = RAW_DATA_DIR / "health_fitness_dataset.csv"
 
+# Дополнительные источники дипломного проекта.
+MFP_PARQUET_PATH = RAW_DATA_DIR / "mfp-diaries.parquet"
+OFF_CSV_PATH = RAW_DATA_DIR / "food_data.csv"
+DIETDIARY_CSV_PATH = RAW_DATA_DIR / "diet_diary.csv"
+
+# Первичный источник всех данных диплома (локальная библиотека).
+SOURCE_DATA_DIR = Path("D:/study/data")
+
 # Основные выходные файлы.
 CLEAN_DATA_PATH = PROCESSED_DATA_DIR / "health_clean.csv"
 GROUP_REPORT_PATH = REPORTS_DIR / "group_report_activity_type.csv"
 CORRELATION_PATH = REPORTS_DIR / "correlation_with_weight.csv"
 FINAL_REPORT_PATH = REPORTS_DIR / "final_report.md"
+
+# Файлы связки датасетов.
+MFP_DAY_PATH = PROCESSED_DATA_DIR / "mfp_day_intake.csv"
+DIET_DAY_PATH = PROCESSED_DATA_DIR / "dietdiary_day.csv"
+COMBINED_DAILY_PATH = PROCESSED_DATA_DIR / "combined_daily.csv"
+LINK_REPORT_PATH = REPORTS_DIR / "datasets_link_report.md"
 
 # Файлы для будущего машинного обучения.
 X_TRAIN_PATH = ML_DATA_DIR / "X_train.csv"

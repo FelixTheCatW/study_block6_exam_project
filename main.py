@@ -1,12 +1,15 @@
-"""Main script for Block 6 exam DataAnalyzer project."""
 from src.config import (
     CATEGORICAL_COLUMNS,
     CHARTS_DIR,
     CLEAN_DATA_PATH,
+    COMBINED_DAILY_PATH,
     CORRELATION_PATH,
     DROP_COLUMNS,
+    DIET_DAY_PATH,
     FINAL_REPORT_PATH,
     GROUP_REPORT_PATH,
+    LINK_REPORT_PATH,
+    MFP_DAY_PATH,
     ML_DATA_DIR,
     RANDOM_STATE,
     RAW_DATA_PATH,
@@ -18,6 +21,7 @@ from src.config import (
 from src.data_loader import DataLoader
 from src.data_cleaner import DataCleaner
 from src.data_analyzer import DataAnalyzer
+from src.data_linker import DataLinker
 from src.ml_preparer import MLDatasetPreparer
 from src.visualizer import Visualizer
 from src.report_builder import ReportBuilder
@@ -118,14 +122,73 @@ def main() -> None:
 
     print("ML shapes:", ml_shapes)
 
-    # 6. Build report.
-    print("6. Building final report...")
+    # 6. Link all diploma datasets (MFP + OFF + Health + DietDiary).
+    print("6. Linking datasets (MFP + OFF + Health + DietDiary)...")
+    mfp_raw = loader.load_mfp()
+    off_raw = loader.load_off()
+    diet_raw = loader.load_dietdiary()
+
+    linker = DataLinker()
+    enriched_mfp = linker.match_mfp_to_off(mfp_raw, off_raw)
+    mfp_day = linker.aggregate_mfp_by_day(enriched_mfp)
+    health_day = linker.aggregate_health_by_day(df_clean)
+    diet_day = linker.aggregate_dietdiary_by_day(diet_raw)
+    combined = linker.build_combined_daily(mfp_day, health_day, diet_day)
+
+    loader.save_dataframe(mfp_day, MFP_DAY_PATH)
+    loader.save_dataframe(diet_day, DIET_DAY_PATH)
+    loader.save_dataframe(combined, COMBINED_DAILY_PATH)
+
+    matched_count = int(enriched_mfp["matched"].sum())
+    unique_bases = int(enriched_mfp["base_name"].nunique())
+    mean_off_score = float(
+        enriched_mfp.loc[enriched_mfp["matched"], "off_score"].mean()
+    )
+    top_off_categories = enriched_mfp.loc[
+        enriched_mfp["matched"], "top_off_category"
+    ].value_counts()
+
+    print(
+        "Matched meals: "
+        f"{matched_count:,} / {len(enriched_mfp):,} "
+        f"({matched_count / len(enriched_mfp) * 100:.1f}%)"
+    )
+    print(f"Combined daily shape: {combined.shape}")
+
+    # 6.1 Chart: OFF categories share.
+    visualizer.save_category_bar(
+        categories=top_off_categories,
+        filename="off_categories_share.png",
+        title="Топ категорий Open Food Facts по приёмам пищи",
+    )
+
+    # 6.2 Link report.
+    link_report_builder = ReportBuilder(LINK_REPORT_PATH)
+    link_text = link_report_builder.build_link_report(
+        mfp_meals=len(enriched_mfp),
+        matched_meals=matched_count,
+        base_names=unique_bases,
+        mean_score=mean_off_score,
+        top_categories=top_off_categories,
+        mfp_days=len(mfp_day),
+        health_days=len(health_day),
+        diet_days=len(diet_day),
+        combined_rows=len(combined),
+    )
+    link_report_builder.save(link_text)
+    print("Link report:", LINK_REPORT_PATH)
+
+    # 7. Build report.
+    print("7. Building final report...")
     report_builder = ReportBuilder(FINAL_REPORT_PATH)
 
     insights = [
         "Медианная масса тела по выборке ниже среднего, распределение близко к нормальному.",
         "Средняя калорийность тренировки максимальна у группы " + str(group_report["mean"].idxmax()) + ".",
         "Число шагов и потраченные калории положительно связаны между собой.",
+        "Сопоставление блюд MFP со справочником Open Food Facts покрыло "
+        + f"{matched_count / len(enriched_mfp) * 100:.1f}% "
+        + "приёмов пищи — слои питания и состава продуктов связаны.",
     ]
 
     report_text = report_builder.build_report(

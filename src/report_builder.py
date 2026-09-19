@@ -107,6 +107,61 @@ class ReportBuilder:
 """
         return report_text
 
+    def build_link_report(
+        self,
+        mfp_meals: int,
+        matched_meals: int,
+        base_names: int,
+        mean_score: float,
+        top_categories: pd.Series,
+        mfp_days: int,
+        health_days: int,
+        diet_days: int,
+        combined_rows: int,
+    ) -> str:
+        """Сформировать отчёт о связке датасетов."""
+        report_text = f"""# Отчёт о связке датасетов
+
+## 1. Задача
+
+Связать четыре слоя данных дипломного проекта в единую ежедневную таблицу:
+MFP Diaries (питание), Open Food Facts (справочник продуктов),
+Health and fitness (расход энергии и вес), DietDiary (вес и фото приёмов пищи).
+
+## 2. Сопоставление MFP с Open Food Facts
+
+Приёмов пищи в MFP: {mfp_meals:,}.
+Уникальных названий блюд: {base_names:,}.
+Совпало с товарами справочника (containment >= 0.50): {matched_meals:,}
+({matched_meals / mfp_meals * 100:.1f}% приёмов пищи).
+
+Средний скор сопоставления по совпавшим блюдам: {mean_score:.3f}.
+
+## 3. Топ категорий Open Food Facts по приёмам пищи
+
+{top_categories.head(10).map(lambda value: f"{value:,}").rename("приёмов пищи").to_string()}
+
+## 4. Единая ежедневная таблица
+
+- MFP (intake за день): {mfp_days:,} строк;
+- Health (активность/вес за день): {health_days:,} строк;
+- DietDiary (вес/фото за день): {diet_days:,} строк.
+
+Итого в `combined_daily.csv`: {combined_rows:,} строк.
+
+Схема гармонизирована: колонки intake (calories, carbs, fat, protein, sodium, sugar),
+расхода энергии (calories_burned, daily_steps, sleep_hours), веса (weight_kg)
+и колонка source (mfp / health / dietdiary).
+
+## 5. Ограничения
+
+Между слоями нет общих ключей: разные пользователи и периоды времени
+(MFP 2014–2015, DietDiary 2017–2021, Health 2024). Объединение построено
+на уровне гармонизированной дневной схемы. Прямой пользовательский join
+станет возможен в дипломной ветке после сбора единого журнала питания.
+"""
+        return report_text
+
     def save(self, report_text: str) -> None:
         """Сохранить markdown-отчёт."""
         self.output_path.parent.mkdir(parents=True, exist_ok=True)

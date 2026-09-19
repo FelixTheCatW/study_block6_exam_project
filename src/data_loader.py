@@ -10,6 +10,15 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from src.config import (
+    DIETDIARY_CSV_PATH,
+    MFP_PARQUET_PATH,
+    OFF_CSV_PATH,
+    SOURCE_DATA_DIR,
+)
+
+PATH_SOURCE_DIR = SOURCE_DATA_DIR
+
 
 class DataLoader:
     """Класс для загрузки CSV-датасета Health and fitness."""
@@ -32,6 +41,28 @@ class DataLoader:
         data = self.create_demo_health_dataset()
         data.to_csv(self.raw_path, index=False)
         return data
+
+    @staticmethod
+    def _resolve_source(local_path: Path, source_file_name: str) -> Path:
+        """Вернуть локальный путь, либо путь в общей библиотеке данных."""
+        if Path(local_path).exists():
+            return Path(local_path)
+        return PATH_SOURCE_DIR / source_file_name
+
+    def load_mfp(self) -> pd.DataFrame:
+        """Загрузить MyFitnessPal Diaries (Parquet)."""
+        path = self._resolve_source(MFP_PARQUET_PATH, "mfp-diaries.parquet")
+        return pd.read_parquet(path)
+
+    def load_off(self) -> pd.DataFrame:
+        """Загрузить справочник продуктов Open Food Facts."""
+        path = self._resolve_source(OFF_CSV_PATH, "food_data.csv")
+        return pd.read_csv(path, encoding="utf-8")
+
+    def load_dietdiary(self) -> pd.DataFrame:
+        """Загрузить дневник питания DietDiary с фото и весом."""
+        path = self._resolve_source(DIETDIARY_CSV_PATH, "diet_diary.csv")
+        return pd.read_csv(path, encoding="utf-8")
 
     @staticmethod
     def save_dataframe(dataframe: pd.DataFrame, path: Path) -> None:

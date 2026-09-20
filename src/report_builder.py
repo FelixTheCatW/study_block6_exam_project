@@ -128,6 +128,10 @@ class ReportBuilder:
 MFP Diaries (питание), Open Food Facts (справочник продуктов),
 Health and fitness (расход энергии и вес), DietDiary (вес и фото приёмов пищи).
 
+DietDiary — официальный датасет из репозитория yxG1005/Weight_Prediction
+(статья «Navigating Weight Prediction with Diet Diary», ACM Multimedia 2024,
+arXiv 2408.05445).
+
 ## 2. Сопоставление MFP с Open Food Facts
 
 Приёмов пищи в MFP: {mfp_meals:,}.

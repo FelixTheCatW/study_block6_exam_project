@@ -92,6 +92,12 @@ python -m pytest -q
 | Здоровье | Health and fitness | расход энергии, активность, вес |
 | Дневник с фото | DietDiary (`diet_diary.csv`) | вес по дням, фото приёмов пищи |
 
+DietDiary — официальный датасет репозитория
+[yxG1005/Weight_Prediction](https://github.com/yxG1005/Weight_Prediction)
+(«Navigating Weight Prediction with Diet Diary», ACM Multimedia 2024 Oral,
+arXiv 2408.05445): `data.csv`, `predict_ingr.json`, `DietDiary.zip` (фото).
+Формат приёма пищи — `пути к фото;через ;|||ингредиенты через пробел`.
+
 Между слоями нет общих ключей (разные пользователи и годы), поэтому объединение
 построено как гармонизированная дневная схема с колонкой `source`.
 Блюда MFP сопоставляются со справочником OFF по токенам названий

@@ -19,7 +19,7 @@ from collections import defaultdict
 import numpy as np
 import pandas as pd
 
-# Слова, не несущие смысла для сопоставления (порции, упаковка, общие слова).
+
 STOPWORDS = {
     "a", "an", "and", "the", "in", "of", "on", "with", "without", "fresh",
     "raw", "frozen", "ready", "to", "eat", "from", "my", "brand", "food",
@@ -52,9 +52,7 @@ class DataLinker:
         self.off_keywords = []
         self._off_top_cats = None
 
-    # ------------------------------------------------------------------ #
-    # 1) Сопоставление блюд MFP со справочником Open Food Facts            #
-    # ------------------------------------------------------------------ #
+
     @staticmethod
     def _build_off_index(off_df: pd.DataFrame) -> tuple[list[set[str]], dict[str, list[int]]]:
         """Построить инвертированный индекс OFF: токен -> индексы товаров."""
@@ -143,9 +141,7 @@ class DataLinker:
         self._off_top_cats = off_top_cats
         return enriched
 
-    # ------------------------------------------------------------------ #
-    # 2) Ежедневная агрегация слоёв                                         #
-    # ------------------------------------------------------------------ #
+
     @staticmethod
     def aggregate_mfp_by_day(enriched: pd.DataFrame) -> pd.DataFrame:
         """Агрегировать обогащённые приёмы пищи по (user_id, date)."""
@@ -163,7 +159,7 @@ class DataLinker:
             enriched.groupby(["user_id", "date"])["off_score"].mean().values
         )
 
-        # Главная категория OFF по дневной калорийности.
+
         day_calories_by_category = (
             enriched.groupby(["user_id", "date", "top_off_category"])["calories"]
             .sum()
@@ -231,11 +227,9 @@ class DataLinker:
             + frame["supper_notes"].str.len()
         )
 
-        return frame  # остаётся на уровне записей (ID, date) — это уже день
+        return frame
 
-    # ------------------------------------------------------------------ #
-    # 3) Единая ежедневная таблица                                           #
-    # ------------------------------------------------------------------ #
+
     @staticmethod
     def build_combined_daily(
         mfp_day: pd.DataFrame,

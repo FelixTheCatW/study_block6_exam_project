@@ -36,20 +36,20 @@ def main() -> None:
     CHARTS_DIR.mkdir(parents=True, exist_ok=True)
     ML_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-    # 1. Load data.
+
     print("1. Loading dataset...")
     loader = DataLoader(RAW_DATA_PATH)
     df_raw = loader.load()
     print(f"Raw shape: {df_raw.shape}")
 
-    # 2. Clean data.
+
     print("2. Cleaning dataset...")
     cleaner = DataCleaner(df_raw)
     df_clean = cleaner.clean(required_columns=REQUIRED_COLUMNS)
     loader.save_dataframe(df_clean, CLEAN_DATA_PATH)
     print(f"Clean shape: {df_clean.shape}")
 
-    # 3. Analyze data.
+
     print("3. Analyzing dataset...")
     analyzer = DataAnalyzer(df_clean)
 
@@ -67,7 +67,7 @@ def main() -> None:
     print("Correlation with weight (top 5):")
     print(correlation.head())
 
-    # 4. Save charts.
+
     print("4. Saving charts...")
     visualizer = Visualizer(CHARTS_DIR)
 
@@ -93,7 +93,7 @@ def main() -> None:
         title="Средние потраченные калории по типу тренировки",
     )
 
-    # 5. Prepare dataset for machine learning.
+
     print("5. Preparing ML dataset...")
     ml_preparer = MLDatasetPreparer(
         dataframe=df_clean,
@@ -125,7 +125,7 @@ def main() -> None:
 
     print("ML shapes:", ml_shapes)
 
-    # 6. Train a baseline regression model (demo stage of the diploma).
+
     print("6. Training baseline regression model...")
     predictor = WeightPredictor(random_state=RANDOM_STATE)
     y_pred, model_metrics = predictor.fit_evaluate(
@@ -143,7 +143,7 @@ def main() -> None:
     print("Predictions:", PREDICTIONS_PATH)
     print("Chart:", PREDICTION_CHART_PATH)
 
-    # 7. Link all diploma datasets (MFP + OFF + Health + DietDiary).
+
     print("7. Linking datasets (MFP + OFF + Health + DietDiary)...")
     mfp_raw = loader.load_mfp()
     off_raw = loader.load_off()
@@ -176,14 +176,14 @@ def main() -> None:
     )
     print(f"Combined daily shape: {combined.shape}")
 
-    # 7.1 Chart: OFF categories share.
+
     visualizer.save_category_bar(
         categories=top_off_categories,
         filename="off_categories_share.png",
         title="Топ категорий Open Food Facts по приёмам пищи",
     )
 
-    # 7.2 Link report.
+
     link_report_builder = ReportBuilder(LINK_REPORT_PATH)
     link_text = link_report_builder.build_link_report(
         mfp_meals=len(enriched_mfp),
@@ -199,7 +199,7 @@ def main() -> None:
     link_report_builder.save(link_text)
     print("Link report:", LINK_REPORT_PATH)
 
-    # 8. Build report.
+
     print("8. Building final report...")
     report_builder = ReportBuilder(FINAL_REPORT_PATH)
 

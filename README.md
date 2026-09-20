@@ -23,6 +23,9 @@ https://www.kaggle.com/datasets/evan65549/health-and-fitness-dataset
 
 Локальная копия: `data/raw/health_fitness_dataset.csv`.
 
+Полное описание всех четырёх слоёв данных диплома (Health, MFP, Open Food Facts,
+DietDiary), схема связей и описание выходных файлов: [docs/data_description.md](docs/data_description.md).
+
 ## Что делает проект
 
 1. Загружает CSV-датасет.

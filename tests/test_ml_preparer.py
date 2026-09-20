@@ -1,20 +1,22 @@
 """Tests for MLDatasetPreparer."""
+import pytest
+
 from src.config import CATEGORICAL_COLUMNS, DROP_COLUMNS, TARGET_COLUMN, TEST_SIZE
-from src.data_loader import DataLoader
 from src.ml_preparer import MLDatasetPreparer
 
 
-def test_ml_preparer_creates_numeric_train_test():
-    dataframe = DataLoader.create_demo_health_dataset(rows=200, seed=1)
-
-    preparer = MLDatasetPreparer(
-        dataframe=dataframe,
+@pytest.fixture()
+def preparer(real_health_sample):
+    return MLDatasetPreparer(
+        dataframe=real_health_sample,
         target_column=TARGET_COLUMN,
         categorical_columns=CATEGORICAL_COLUMNS,
         drop_columns=DROP_COLUMNS,
         random_state=42,
     )
 
+
+def test_ml_preparer_creates_numeric_train_test(preparer):
     X_train, X_test, y_train, y_test = preparer.prepare(
         test_size=TEST_SIZE,
         scale=True,
@@ -29,16 +31,7 @@ def test_ml_preparer_creates_numeric_train_test():
     assert X_test.isna().sum().sum() == 0
 
 
-def test_ml_preparer_drops_derived_columns():
-    dataframe = DataLoader.create_demo_health_dataset(rows=100, seed=7)
-
-    preparer = MLDatasetPreparer(
-        dataframe=dataframe,
-        target_column=TARGET_COLUMN,
-        categorical_columns=CATEGORICAL_COLUMNS,
-        drop_columns=DROP_COLUMNS,
-        random_state=42,
-    )
+def test_ml_preparer_drops_derived_columns(preparer):
     preparer.add_features()
     X, y = preparer.make_features_and_target()
 
@@ -47,17 +40,7 @@ def test_ml_preparer_drops_derived_columns():
         assert column not in X.columns
 
 
-def test_ml_preparer_adds_features():
-    dataframe = DataLoader.create_demo_health_dataset(rows=100, seed=3)
-
-    preparer = MLDatasetPreparer(
-        dataframe=dataframe,
-        target_column=TARGET_COLUMN,
-        categorical_columns=CATEGORICAL_COLUMNS,
-        drop_columns=DROP_COLUMNS,
-        random_state=42,
-    )
-
+def test_ml_preparer_adds_features(preparer):
     data = preparer.add_features()
 
     for feature in ("calories_per_minute", "activity_load", "pulse_pressure"):

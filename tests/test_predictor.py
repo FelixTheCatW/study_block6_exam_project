@@ -5,18 +5,15 @@ import pytest
 from sklearn.linear_model import LinearRegression
 
 from src.config import CATEGORICAL_COLUMNS, DROP_COLUMNS, TARGET_COLUMN, TEST_SIZE
-from src.data_loader import DataLoader
 from src.ml_preparer import MLDatasetPreparer
 from src.predictor import WeightPredictor
 from src.visualizer import Visualizer
 
 
 @pytest.fixture()
-def prepared_data():
-    dataframe = DataLoader.create_demo_health_dataset(rows=500, seed=11)
-
+def prepared_data(real_health_sample):
     preparer = MLDatasetPreparer(
-        dataframe=dataframe,
+        dataframe=real_health_sample,
         target_column=TARGET_COLUMN,
         categorical_columns=CATEGORICAL_COLUMNS,
         drop_columns=DROP_COLUMNS,

@@ -31,13 +31,14 @@ https://www.kaggle.com/datasets/evan65549/health-and-fitness-dataset
    числовые пропуски — медианой) и удаляет дубликаты.
 4. Считает статистики NumPy/Pandas.
 5. Строит групповой отчёт по типу тренировки.
-6. Строит 3 графика (гистограмма, scatter, столбчатая диаграмма).
+6. Строит графики (гистограмма, scatter, столбчатые диаграммы).
 7. Создаёт новые признаки (`calories_per_minute`, `activity_load`, `pulse_pressure`).
 8. Кодирует категориальные столбцы в 0/1.
 9. Нормирует числовые признаки.
 10. Делит данные на train/test.
-11. Сохраняет подготовленные файлы для будущего машинного обучения.
-12. Связывает слои дипломного проекта: блюда MFP (6,5 млн приёмов пищи)
+11. Обучает базовую линейную регрессию (прогноз `weight_kg`) и оценивает на тесте.
+12. Сохраняет подготовленные файлы для машинного обучения.
+13. Связывает слои дипломного проекта: блюда MFP (6,5 млн приёмов пищи)
     сопоставляются со справочником Open Food Facts (73,9% совпадений),
     а дневные слои MFP + Health + DietDiary объединяются
     в единую ежедневную таблицу `combined_daily.csv`.
@@ -55,6 +56,7 @@ https://www.kaggle.com/datasets/evan65549/health-and-fitness-dataset
 | `src/data_linker.py` | связка MFP + Open Food Facts + Health + DietDiary |
 | `src/visualizer.py` | сохранение графиков |
 | `src/ml_preparer.py` | признаки, кодирование, нормирование, train/test split |
+| `src/predictor.py` | обучение и оценка базовой модели (scikit-learn) |
 | `src/report_builder.py` | формирование итогового markdown-отчёта |
 | `main.py` | единый сценарий запуска |
 
@@ -75,11 +77,12 @@ python -m pytest -q
 - `data/processed/dietdiary_day.csv` (вес и фото по дням)
 - `data/processed/combined_daily.csv` (единая ежедневная таблица 4 слоёв)
 - `data/ml/X_train.csv`, `X_test.csv`, `y_train.csv`, `y_test.csv`
+- `data/ml/predictions_test.csv` (факт/прогноз модели на тесте)
 - `reports/final_report.md`
 - `reports/datasets_link_report.md`
 - `reports/group_report_activity_type.csv`
 - `reports/correlation_with_weight.csv`
-- `reports/charts/*.png` (4 графика)
+- `reports/charts/*.png` (5 графиков, включая факт против прогноза)
 
 ## Связка датасетов
 
@@ -109,6 +112,14 @@ arXiv 2408.05445): `data.csv`, `predict_ingr.json`, `DietDiary.zip` (фото).
 регрессии на защите диплома. Матрица X без y пригодна для кластеризации.
 Единая ежедневная таблица `combined_daily.csv` — вход для объединённого
 ML-пайплайна диплома (intake + активность + вес + категории OFF).
+
+### Базовая модель (ветка `feature/ml-prediction`)
+
+Линейная регрессия обучается на `X_train`/`y_train` и оценивается
+на `X_test`/`y_test` (прогноз `weight_kg`). Текущие метрики на тесте:
+MAE ≈ 4.74 кг, RMSE ≈ 5.56 кг, R2 ≈ 0.578. Результаты в
+`data/ml/predictions_test.csv`, график «факт против прогноза» —
+`reports/charts/predictions_vs_actual.png`.
 
 ## Автор
 

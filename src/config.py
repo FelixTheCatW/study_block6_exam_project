@@ -41,11 +41,15 @@ DIET_DAY_PATH = PROCESSED_DATA_DIR / "dietdiary_day.csv"
 COMBINED_DAILY_PATH = PROCESSED_DATA_DIR / "combined_daily.csv"
 LINK_REPORT_PATH = REPORTS_DIR / "datasets_link_report.md"
 
-# Файлы для будущего машинного обучения.
+# Файлы для машинного обучения.
 X_TRAIN_PATH = ML_DATA_DIR / "X_train.csv"
 X_TEST_PATH = ML_DATA_DIR / "X_test.csv"
 Y_TRAIN_PATH = ML_DATA_DIR / "y_train.csv"
 Y_TEST_PATH = ML_DATA_DIR / "y_test.csv"
+PREDICTIONS_PATH = ML_DATA_DIR / "predictions_test.csv"
+
+# Выход бонусной модели (ветка feature/ml-prediction).
+PREDICTION_CHART_PATH = CHARTS_DIR / "predictions_vs_actual.png"
 
 # Колонки датасета Health and fitness.
 REQUIRED_COLUMNS = [

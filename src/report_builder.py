@@ -22,6 +22,7 @@ class ReportBuilder:
         correlation: pd.Series,
         ml_shapes: dict[str, tuple[int, int] | int],
         insights: list[str],
+        model_metrics: dict[str, float] | None = None,
     ) -> str:
         """Сформировать текст отчёта."""
         top_activity = group_report["mean"].idxmax()
@@ -31,6 +32,24 @@ class ReportBuilder:
         insights_text = "\n".join(f"{i + 1}. {item}" for i, item in enumerate(insights))
 
         corr_text = correlation.head(8).to_string()
+
+        if model_metrics is None:
+            model_section = (
+                "Модель на этом этапе не обучалась (запуск без ветки "
+                "feature/ml-prediction).\n"
+            )
+        else:
+            model_section = f"""Линейная регрессия обучена на X_train / y_train
+и оценена на отложенной выборке X_test / y_test.
+
+Метрики на тесте:
+
+- MAE (средняя абсолютная ошибка): {model_metrics['mae']:.3f} кг
+- RMSE (среднеквадратичная ошибка): {model_metrics['rmse']:.3f} кг
+- R2 (доля объяснённой дисперсии): {model_metrics['r2']:.3f}
+
+График «факт против прогноза»: `reports/charts/predictions_vs_actual.png`.
+"""
 
         report_text = f"""# {title}
 
@@ -90,20 +109,23 @@ class ReportBuilder:
 - y_train: {ml_shapes["y_train"]}
 - y_test: {ml_shapes["y_test"]}
 
-## 7. Как это связано с ИИ
+## 7. Базовая модель (демо-этап диплома)
 
-Модель на этом этапе не обучается. Подготовленная матрица признаков X
-и целевая переменная y используются для задачи регрессии:
+{model_section}
+## 8. Как это связано с ИИ
+
+Модель обучена на подготовленной матрице признаков X
+и целевой переменной y для задачи регрессии:
 прогнозирование `weight_kg` по образу жизни и активности.
 
 Для кластеризации можно использовать матрицу X без целевой переменной y:
 искать группы пользователей по профилю активности и питания.
 
-## 8. Вывод
+## 9. Вывод
 
 Проект DataAnalyzer показывает архитектуру реального Python-проекта:
-загрузка, очистка, анализ, визуализация, отчёт и подготовка данных
-к машинному обучению разделены по классам и модулям.
+загрузка, очистка, анализ, визуализация, отчёт, подготовка данных
+к машинному обучению и базовая модель разделены по классам и модулям.
 """
         return report_text
 

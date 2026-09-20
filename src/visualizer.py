@@ -115,3 +115,54 @@ class Visualizer:
         plt.close()
 
         return output_path
+
+    def save_prediction_scatter(
+        self,
+        y_actual: pd.Series,
+        y_pred: pd.Series,
+        filename: str,
+        title: str,
+        sample_size: int = 4000,
+        random_state: int = 42,
+    ) -> Path:
+        """Сохранить график факт против прогноза с линией y = x."""
+        output_path = self.charts_dir / filename
+
+        table = pd.DataFrame(
+            {"actual": y_actual, "prediction": y_pred}
+        ).dropna()
+
+        if len(table) > sample_size:
+            table = table.sample(sample_size, random_state=random_state)
+
+        plt.figure(figsize=(7, 7))
+        plt.scatter(
+            table["actual"],
+            table["prediction"],
+            alpha=0.2,
+            s=10,
+            color="#4C72B0",
+            label="факт / прогноз",
+        )
+
+        limit = min(
+            float(table["actual"].min()),
+            float(table["prediction"].min()),
+        )
+        top = max(
+            float(table["actual"].max()),
+            float(table["prediction"].max()),
+        )
+        line = [limit, top]
+        plt.plot(line, line, color="#C44E52", linestyle="--", label="y = x")
+
+        plt.title(title)
+        plt.xlabel("Фактический вес, кг")
+        plt.ylabel("Прогноз модели, кг")
+        plt.grid(True, alpha=0.3)
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(output_path, dpi=120)
+        plt.close()
+
+        return output_path

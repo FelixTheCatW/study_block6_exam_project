@@ -11,6 +11,8 @@ from src.config import (
     LINK_REPORT_PATH,
     MFP_DAY_PATH,
     ML_DATA_DIR,
+    PREDICTIONS_PATH,
+    PREDICTION_CHART_PATH,
     RANDOM_STATE,
     RAW_DATA_PATH,
     REPORTS_DIR,
@@ -23,6 +25,7 @@ from src.data_cleaner import DataCleaner
 from src.data_analyzer import DataAnalyzer
 from src.data_linker import DataLinker
 from src.ml_preparer import MLDatasetPreparer
+from src.predictor import WeightPredictor
 from src.visualizer import Visualizer
 from src.report_builder import ReportBuilder
 
@@ -122,8 +125,26 @@ def main() -> None:
 
     print("ML shapes:", ml_shapes)
 
-    # 6. Link all diploma datasets (MFP + OFF + Health + DietDiary).
-    print("6. Linking datasets (MFP + OFF + Health + DietDiary)...")
+    # 6. Train a baseline regression model (demo stage of the diploma).
+    print("6. Training baseline regression model...")
+    predictor = WeightPredictor(random_state=RANDOM_STATE)
+    y_pred, model_metrics = predictor.fit_evaluate(
+        X_train, X_test, y_train, y_test
+    )
+    predictor.save_predictions(y_test, y_pred, PREDICTIONS_PATH)
+    visualizer.save_prediction_scatter(
+        y_actual=y_test,
+        y_pred=y_pred,
+        filename="predictions_vs_actual.png",
+        title="Прогноз массы тела: факт против прогноза",
+    )
+
+    print("Model metrics on test:", model_metrics)
+    print("Predictions:", PREDICTIONS_PATH)
+    print("Chart:", PREDICTION_CHART_PATH)
+
+    # 7. Link all diploma datasets (MFP + OFF + Health + DietDiary).
+    print("7. Linking datasets (MFP + OFF + Health + DietDiary)...")
     mfp_raw = loader.load_mfp()
     off_raw = loader.load_off()
     diet_raw = loader.load_dietdiary()
@@ -155,14 +176,14 @@ def main() -> None:
     )
     print(f"Combined daily shape: {combined.shape}")
 
-    # 6.1 Chart: OFF categories share.
+    # 7.1 Chart: OFF categories share.
     visualizer.save_category_bar(
         categories=top_off_categories,
         filename="off_categories_share.png",
         title="Топ категорий Open Food Facts по приёмам пищи",
     )
 
-    # 6.2 Link report.
+    # 7.2 Link report.
     link_report_builder = ReportBuilder(LINK_REPORT_PATH)
     link_text = link_report_builder.build_link_report(
         mfp_meals=len(enriched_mfp),
@@ -178,14 +199,18 @@ def main() -> None:
     link_report_builder.save(link_text)
     print("Link report:", LINK_REPORT_PATH)
 
-    # 7. Build report.
-    print("7. Building final report...")
+    # 8. Build report.
+    print("8. Building final report...")
     report_builder = ReportBuilder(FINAL_REPORT_PATH)
 
     insights = [
         "Медианная масса тела по выборке ниже среднего, распределение близко к нормальному.",
         "Средняя калорийность тренировки максимальна у группы " + str(group_report["mean"].idxmax()) + ".",
         "Число шагов и потраченные калории положительно связаны между собой.",
+        "Базовая модель (линейная регрессия) объясняет "
+        + f"{model_metrics['r2'] * 100:.1f}% дисперсии массы тела "
+        + "на тесте с ошибкой RMSE "
+        + f"{model_metrics['rmse']:.2f} кг.",
         "Сопоставление блюд MFP со справочником Open Food Facts покрыло "
         + f"{matched_count / len(enriched_mfp) * 100:.1f}% "
         + "приёмов пищи — слои питания и состава продуктов связаны.",
@@ -193,13 +218,14 @@ def main() -> None:
 
     report_text = report_builder.build_report(
         title="Блок 6. Финальный проект DataAnalyzer",
-        subtitle="Анализ датасета Health and fitness: подготовка данных к прогнозу массы тела.",
+        subtitle="Анализ датасета Health and fitness: подготовка данных и базовая модель прогноза массы тела.",
         basic_info=basic_info,
         weight_stats=weight_stats,
         group_report=group_report,
         correlation=correlation,
         ml_shapes=ml_shapes,
         insights=insights,
+        model_metrics=model_metrics,
     )
     report_builder.save(report_text)
 
